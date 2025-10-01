@@ -1,0 +1,17 @@
+# virtualenv
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# model weights, dataset
+*.h5
+*.ckpt
+dataset/
+!.gitkeep
+
+# editor / OS
+.vscode/
+.idea/
+.DS_Store

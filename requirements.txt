@@ -1,0 +1,28 @@
+# Core (yang kita pakai untuk training CNN dengan Keras/TensorFlow)
+tensorflow==2.20.0
+numpy>=1.26.0
+opencv-python>=4.7.0
+pillow>=10.0.0
+scikit-learn>=1.3.0
+pandas>=2.1.0
+matplotlib>=3.8.0
+seaborn>=0.12.0
+
+# Augmentation & util
+albumentations>=1.3.0
+tqdm>=4.65.0
+joblib>=1.3.0
+
+# Demo / deployment (Streamlit simple app)
+streamlit>=1.25.0
+
+# Dev (opsional)
+jupyterlab
+black
+flake8
+
+# NOTE:
+# Jika mau pakai PyTorch + CUDA, jangan uncomment di sini.
+# Instal PyTorch GPU harus pake perintah pip dengan index-url resmi PyTorch sesuai versi CUDA.
+# Contoh (jalankan manual di terminal setelah memastikan Python 3.12 env):
+# pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
