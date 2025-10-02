@@ -1,7 +1,7 @@
 from pathlib import Path
 
 def inspect_dataset():
-    DATASET_PATH = Path("dataset/trashnet/data/dataset-resized/dataset-resized")
+    DATASET_PATH = Path("dataset/merged")
 
     print(f"Menginspeksi: {DATASET_PATH}")
 
