@@ -1,3 +1,5 @@
+# src/train_resnet.py
+
 import sys
 import os
 import copy
@@ -7,6 +9,7 @@ import torch.optim as optim
 from torchvision import models
 from utils.dataset import create_dataloaders
 import matplotlib.pyplot as plt
+from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 
 # 📂 Pastikan folder checkpoints ada
 os.makedirs("checkpoints", exist_ok=True)
@@ -140,5 +143,37 @@ plt.tight_layout()
 plt.savefig("checkpoints/training_plot.png")
 print("📊 Grafik training disimpan di checkpoints/training_plot.png")
 log_file.write("📊 Grafik training disimpan di checkpoints/training_plot.png\n")
+
+# =======================================================
+# 🔬 Evaluasi model di test set
+# =======================================================
+model.eval()
+all_preds, all_labels = [], []
+with torch.no_grad():
+    for inputs, labels in test_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        outputs = model(inputs)
+        _, preds = torch.max(outputs, 1)
+
+        all_preds.extend(preds.cpu().numpy())
+        all_labels.extend(labels.cpu().numpy())
+
+# 📊 Classification report
+report = classification_report(all_labels, all_preds, target_names=class_names, digits=4)
+print("\n📑 Classification Report:\n")
+print(report)
+
+# ✅ Auto-save ke file txt
+with open("checkpoints/classification_report.txt", "w") as f:
+    f.write(report)
+print("📑 Classification report disimpan di checkpoints/classification_report.txt")
+
+# 📌 Confusion matrix
+cm = confusion_matrix(all_labels, all_preds)
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
+disp.plot(cmap="Blues", xticks_rotation=45)
+plt.title("Confusion Matrix")
+plt.savefig("checkpoints/confusion_matrix.png")
+print("📊 Confusion matrix disimpan di checkpoints/confusion_matrix.png")
 
 log_file.close()
