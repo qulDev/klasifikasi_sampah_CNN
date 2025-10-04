@@ -31,7 +31,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"🔍 Device: {device}")
 
 # 🏗️ Load ResNet18 pretrained
-model = models.resnet18(weights="IMAGENET1K_V1")
+model = models.resnet50(weights="IMAGENET1K_V1")
 num_ftrs = model.fc.in_features
 model.fc = nn.Linear(num_ftrs, len(class_names))
 model = model.to(device)
@@ -105,7 +105,7 @@ for epoch in range(NUM_EPOCHS):
         log_file.write("✅ Validation loss improved, saving model...\n")
         best_loss = val_loss
         best_model_wts = copy.deepcopy(model.state_dict())
-        torch.save(model.state_dict(), "checkpoints/resnet18_best.pth")
+        torch.save(model.state_dict(), "checkpoints/resnet50_best.pth")
         epochs_no_improve = 0
     else:
         epochs_no_improve += 1
@@ -116,9 +116,9 @@ for epoch in range(NUM_EPOCHS):
 
 # 🔥 Load best model
 model.load_state_dict(best_model_wts)
-torch.save(model.state_dict(), "checkpoints/resnet18_final.pth")
-print("Training selesai. Model terbaik disimpan di checkpoints/resnet18_best.pth 🚀")
-log_file.write("Training selesai. Model terbaik disimpan di checkpoints/resnet18_best.pth 🚀\n")
+torch.save(model.state_dict(), "checkpoints/resnet50_final.pth")
+print("Training selesai. Model terbaik disimpan di checkpoints/resnet50_best.pth 🚀")
+log_file.write("Training selesai. Model terbaik disimpan di checkpoints/resnet50_best.pth 🚀\n")
 
 # 📈 Plot grafik Loss & Accuracy
 plt.figure(figsize=(12,5))
