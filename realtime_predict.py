@@ -6,7 +6,7 @@ from torchvision import transforms
 import numpy as np
 
 # === Konfigurasi ===
-MODEL_PATH = "checkpoints/resnet50_best.pth"
+MODEL_PATH = "checkpoints_v2/resnet50_best_v2.pth"
 CLASS_NAMES = ["cardboard", "glass", "metal", "paper", "plastic", "trash"]
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
