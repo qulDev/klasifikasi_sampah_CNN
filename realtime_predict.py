@@ -1,63 +1,70 @@
 import torch
 import torch.nn as nn
-from torchvision import models, transforms
+from torchvision import models
 import cv2
+from torchvision import transforms
 import numpy as np
 
-# --- Konfigurasi ---
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# === Konfigurasi ===
 MODEL_PATH = "checkpoints/resnet50_best.pth"
+CLASS_NAMES = ["cardboard", "glass", "metal", "paper", "plastic", "trash"]
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Kelas sesuai dataset kamu
-CLASSES = ['cardboard', 'glass', 'metal', 'paper', 'plastic', 'trash']
-
-# --- Load model ---
+# === Load model dengan arsitektur yang sama seperti training ===
 model = models.resnet50(weights=None)
-num_features = model.fc.in_features
-model.fc = nn.Linear(num_features, len(CLASSES))
-model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+num_ftrs = model.fc.in_features
+model.fc = nn.Sequential(
+    nn.Linear(num_ftrs, 256),
+    nn.ReLU(),
+    nn.Linear(256, len(CLASS_NAMES))
+)
+
+# === Load bobot ===
+state_dict = torch.load(MODEL_PATH, map_location=DEVICE)
+model.load_state_dict(state_dict)
 model.to(DEVICE)
 model.eval()
 
-# --- Transformasi gambar ---
+# === Transformasi gambar ===
 transform = transforms.Compose([
     transforms.ToPILImage(),
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                         std=[0.229, 0.224, 0.225])
+                         std=[0.229, 0.224, 0.225]),
 ])
 
-# --- Buka Webcam ---
+# === Buka webcam ===
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
-    print("❌ Tidak dapat membuka kamera!")
+    print("❌ Tidak bisa membuka webcam.")
     exit()
 
-print("📷 Tekan 'q' untuk keluar dari realtime detection")
+print("🎥 Webcam aktif. Tekan 'q' untuk keluar.")
 
 while True:
     ret, frame = cap.read()
     if not ret:
+        print("❌ Gagal membaca frame.")
         break
 
-    # Salin frame untuk prediksi
+    # Preprocess
     img = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     img_tensor = transform(img).unsqueeze(0).to(DEVICE)
 
-    # Prediksi
+    # Predict
     with torch.no_grad():
         outputs = model(img_tensor)
         _, preds = torch.max(outputs, 1)
-        label = CLASSES[preds.item()]
+        pred_class = CLASS_NAMES[preds.item()]
+        confidence = torch.softmax(outputs, dim=1)[0][preds.item()].item() * 100
 
-    # --- Tampilkan di layar ---
-    cv2.putText(frame, f"{label}", (20, 50), cv2.FONT_HERSHEY_SIMPLEX,
-                1.5, (0, 255, 0), 3, cv2.LINE_AA)
+    # Tampilkan hasil
+    text = f"{pred_class} ({confidence:.1f}%)"
+    cv2.putText(frame, text, (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                1.0, (0, 255, 0), 2, cv2.LINE_AA)
 
-    cv2.imshow("Realtime Sampah Classifier", frame)
-
-    # Tekan 'q' untuk keluar
+    cv2.imshow("Real-time Waste Classification", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
