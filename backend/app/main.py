@@ -1,35 +1,28 @@
 from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from PIL import Image
-import io
-from .model_loader import load_model
-from .predict import predict_image
+from fastapi.responses import JSONResponse
+import torch
+from backend.app.model_loader import load_model
+from backend.app.predict import predict_image
 
-# Inisialisasi FastAPI
-app = FastAPI(title="Waste Classification API", version="1.0")
 
-# Allow frontend (Next.js) untuk akses API
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# === Inisialisasi FastAPI ===
+app = FastAPI(title="Klasifikasi Sampah API", version="1.0")
 
-# Load model dan class names
-with open("app/class_names.txt", "r") as f:
-    class_names = [line.strip() for line in f.readlines()]
+# === Load class names ===
+with open("backend/app/class_names.txt", "r") as f:
+    CLASS_NAMES = [line.strip() for line in f.readlines()]
 
-model = load_model("checkpoints/resnet50_best.pth", len(class_names))
+# === Setup model & device ===
+MODEL_PATH = "backend/checkpoints/resnet50_best.pth"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = load_model(MODEL_PATH, CLASS_NAMES, device)
 
-@app.get("/")
-def root():
-    return {"message": "Waste Classification API is running 🚀"}
-
+# === Endpoint utama ===
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
-    image_bytes = await file.read()
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    pred_class = predict_image(model, image, class_names)
-    return {"prediction": pred_class}
+    try:
+        contents = await file.read()
+        predicted_class = predict_image(model, CLASS_NAMES, contents, device)
+        return JSONResponse(content={"class": predicted_class})
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=500)
