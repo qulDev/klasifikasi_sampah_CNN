@@ -1,8 +1,16 @@
+# ==== Core ML ====
+torch==2.5.1
+torchvision==0.20.1
+numpy==2.0.1
+scikit-learn==1.5.0
+pillow==10.3.0
+
+# ==== FastAPI Backend ====
 fastapi==0.115.0
 uvicorn==0.30.1
-torch==2.3.0
-torchvision==0.18.0
-pillow==10.3.0
-numpy==1.26.4
-scikit-learn==1.5.0
 python-multipart==0.0.9
+starlette==0.38.6
+
+# ==== Optional (image handling) ====
+opencv-python==4.12.0.88
+opencv-python-headless==4.12.0.88
